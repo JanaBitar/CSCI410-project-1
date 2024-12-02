@@ -1,0 +1,204 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(DigitalLegacyPlanner());
+}
+
+class DigitalLegacyPlanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<Map<String, String>> accounts = [];
+  final TextEditingController accountController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController otherController = TextEditingController();
+
+  String selectedCategory = 'Instagram';
+  final List<String> categories = [
+    'Instagram',
+    'Facebook',
+    'TikTok',
+    'Email',
+    'Snapchat',
+    'Other'
+  ];
+  bool showOtherField = false;
+  bool isPasswordVisible = false;
+
+  void addAccount() {
+    String displayCategory =
+        selectedCategory == 'Other' ? otherController.text : selectedCategory;
+
+    if (accountController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty &&
+        displayCategory.isNotEmpty) {
+      setState(() {
+        accounts.add({
+          'account': accountController.text,
+          'category': displayCategory,
+          'email': emailController.text,
+          'password': passwordController.text,
+        });
+        accountController.clear();
+        emailController.clear();
+        passwordController.clear();
+        otherController.clear();
+        showOtherField = false; // Hide the "Other" field after adding the account
+      });
+    }
+  }
+
+  void deleteAccount(int index) {
+    setState(() {
+      accounts.removeAt(index);
+    });
+  }
+
+  Widget getCategoryIcon(String category) {
+    switch (category) {
+      case 'Instagram':
+        return Icon(Icons.camera_alt, color: Colors.purple);
+      case 'Facebook':
+        return Icon(Icons.facebook, color: Colors.blue);
+      case 'TikTok':
+        return Icon(Icons.music_note, color: Colors.black);
+      case 'Email':
+        return Icon(Icons.email, color: Colors.blue);
+      case 'Snapchat':
+        return Icon(Icons.snapchat, color: Colors.yellow);
+      default:
+        return Icon(Icons.device_hub, color: Colors.blue);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Digital Legacy Planner'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: accountController,
+              decoration: InputDecoration(
+                labelText: 'Account Name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.account_circle),
+              ),
+            ),
+            SizedBox(height: 10),
+            DropdownButtonFormField(
+              value: selectedCategory,
+              decoration: InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.category),
+              ),
+              items: categories
+                  .map((category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCategory = value!;
+                  showOtherField = value == 'Other';
+                });
+              },
+            ),
+            SizedBox(height: 10),
+            if (showOtherField)
+              TextField(
+                controller: otherController,
+                decoration: InputDecoration(
+                  labelText: 'Enter Other Platform Name',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.device_hub),
+                ),
+              ),
+            SizedBox(height: 10),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+              ),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.blueAccent,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      isPasswordVisible = !isPasswordVisible;
+                    });
+                  },
+                ),
+              ),
+              obscureText: !isPasswordVisible,
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: addAccount,
+              child: Text('Add Account'),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: accounts.isEmpty
+                  ? Center(child: Text('No accounts added yet.'))
+                  : ListView.builder(
+                      itemCount: accounts.length,
+                      itemBuilder: (context, index) {
+                        final account = accounts[index];
+                        return Card(
+                          elevation: 4,
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            leading: getCategoryIcon(account['category']!),
+                            title: Text(account['account']!),
+                            subtitle: Text('Email: ${account['email']}\nPassword: ${account['password']}'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => deleteAccount(index),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
